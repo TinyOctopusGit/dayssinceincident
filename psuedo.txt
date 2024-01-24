@@ -1,0 +1,20 @@
+if button push
+    leave sleep
+    get vars
+    reset days
+
+else
+    get variables from rtc
+    check wifi
+    if no wifi 
+        ap mode
+        store wifi
+    get NTP
+    if time is midnight +/- 20mins
+        add one to days
+    store vars rtc
+    sleep for time till next midnight
+
+
+   
+    
