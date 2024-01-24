@@ -1,15 +1,22 @@
 #include <Preferences.h>
 #include "WiFi.h"
 #include <WiFiManager.h>
+#include "time.h"
 
-#define wifiReset 0
+#define wifiReset 5
+#define daysReset 4
 
-Preferences preferences;
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = -18000;
+const int   daylightOffset_sec = 3600;
+
+Preferences credentials;
+Preferences times;
 
 String ssid;
 String password;
 
-const wifiButton = 4;
+ 
 
 void setup() {
     Serial.begin(115200);
@@ -18,30 +25,44 @@ void setup() {
 
     Serial.println();
   
-    preferences.begin("credentials", false);
+    credentials.begin("credentials", false);
  
-    ssid = preferences.getString("ssid", ""); 
-    password = preferences.getString("password", "");
+    ssid = credentials.getString("ssid", ""); 
+    password = credentials.getString("password", "");
 
     if (ssid == "" || password == ""){
         Serial.println("No values saved for ssid or password");
         Serial.println("Press Wifi Reset To add wifi credentials");
-        //Start Wifi Access Point
-        
-        preferences.putString("ssid", ssid); 
-        preferences.putString("password", password);
     }
     else {
         // Connect to Wi-Fi
         WiFi.mode(WIFI_STA);
-        WiFi.begin(ssid.c_str(), password.c_str());
+        WiFi.begin(ssid, password);
         Serial.print("Connecting to WiFi ..");
         while (WiFi.status() != WL_CONNECTED) {
             Serial.print('.');
-            delay(1000);
+            delay(500);
         }
         Serial.println(WiFi.localIP());  
+        addDay();
+        updateScreen();
     }
+}
+
+void addDay() {
+    //init and get the time
+    times.begin("times", false);
+    resetTime = times.getString("resetTime", "");
+    days = times.getString("days", "");
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    if((&timeinfo, "%H:%M") == resetTime) {
+        newDay = days++;
+        times.putString("days", newDay);
+    }
+}
+
+void updateScreen() {
+    // E-ink screen stuff.
 }
 
 void loop() {
